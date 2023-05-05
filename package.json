@@ -1,0 +1,23 @@
+{
+  "name": "Fake API in browser",
+  "version": "1.0.0",
+  "description": "A mock API module for simulating API calls with protected routes and custom data",
+  "main": "fake-api.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/mock-api.git"
+  },
+  "keywords": [
+    "mock",
+    "api",
+    "fake",
+    "testing"
+  ],
+  "author": "Your Name <your-email@example.com>",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}
