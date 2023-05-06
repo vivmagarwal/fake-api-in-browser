@@ -11,37 +11,193 @@
 
     <script src="fake-api.js"></script>
     <script>
-      const initialData = {
-        posts: [
-          { id: 1, title: "json-server", author: "typicode" },
-          { id: 2, title: "json-server2", author: "typicode2" },
-        ],
-        "premium-posts": [
-          { id: 1, title: "premium-json-server", author: "vivmagarwal" },
-        ],
-        comments: [{ id: 1, body: "some comment", postId: 1 }],
-        profile: { name: "typicode" },
-        users: [
-          {
-            id: 1,
-            username: "admin",
-            password: "admin",
-            firstName: "Vivek",
-            lastName: "Agarwal",
-          },
-        ],
-      };
-      const protectedData = [
-        {
-          route: "premium-posts",
-          methods: ["GET", "PUT", "DELETE", "PATCH"],
-        },
-        { route: "posts", methods: ["POST"] },
-      ];
 
-      // Initialize the data
-      initializeFakeApiData(initialData);
-      setProtectedFakeApiData(protectedData);
+
+  const userInitialData = {
+    orders: [
+      {
+        id: 1,
+        userId: 1,
+        items: [
+          { productId: 1, quantity: 2 },
+          { productId: 2, quantity: 1 },
+        ],
+        discount: 0,
+      },
+    ],
+    products: [
+      {
+        id: 1,
+        brand: "ZZZzzzzzzebronics",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/n/y/nyfboat000113_1_cc965b26.jpg?rnd=20200526195200",
+        price: 100,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Laptop",
+      },
+      {
+        id: 2,
+        brand: "ZZebronics",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/n/y/nyfblta000011_1.jpg?rnd=20200526195200",
+        price: 120,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Mobile",
+      },
+      {
+        id: 3,
+        brand: "Zebronics",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/b/c/bc60a_1_c82d81cb.jpg?rnd=20200526195200",
+        price: 130,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Head_Phones",
+      },
+      {
+        id: 4,
+        brand: "Zebronics",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/6/1/619660798426_1_727221ba.jpg?rnd=20200526195200",
+        price: 100,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Speakers",
+      },
+      {
+        id: 5,
+        brand: "Zebronics",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/c/_/c_8907605107849_1_655fcbdf.jpg?rnd=20200526195200",
+        price: 200,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Smart_TV",
+      },
+      {
+        id: 6,
+        brand: "Apple",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/c/o/cor-nyfcrca000039_1_369033fe.jpg?rnd=20200526195200",
+        price: 235,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Laptop",
+      },
+      {
+        id: 7,
+        brand: "Apple",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/a/m/ambrane_8904258106557_1_aff3c266.jpg?rnd=20200526195200",
+        price: 250,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Mobile",
+      },
+      {
+        id: 8,
+        brand: "Apple",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/n/y/nyfblta000009_1.jpg?rnd=20200526195200",
+        price: 100,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Head_Phones",
+      },
+      {
+        id: 9,
+        brand: "Apple",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/z/b/zb_8906108615899_1_44867a4c.jpg?rnd=20200526195200",
+        price: 325,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Speakers",
+      },
+      {
+        id: 10,
+        brand: "Apple",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/u/d/ud_bk_1_2f275806.jpg?rnd=20200526195200",
+        price: 350,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Smart_TV",
+      },
+      {
+        id: 11,
+        brand: "HP",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/g/r/grey_1_398b5873.jpg?rnd=20200526195200",
+        price: 375,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Laptop",
+      },
+      {
+        id: 12,
+        brand: "HP",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/b/o/boult-audio-ba-nk-freepods-black_1_17c2dc71.jpg?rnd=20200526195200",
+        price: 100,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Mobile",
+      },
+      {
+        id: 13,
+        brand: "HP",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/d/i/dive_green_1.jpg?rnd=20200526195200",
+        price: 500,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Head_Phones",
+      },
+      {
+        id: 14,
+        brand: "HP",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/p/e/pebble-8906086572115_1_34a9b9fd.jpg?rnd=20200526195200",
+        price: 1000,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Speakers",
+      },
+      {
+        id: 15,
+        brand: "HP",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/p/p/pportronics-por-1195_1_e9dc8e9f.jpg?rnd=20200526195200",
+        price: 750,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Smart_TV",
+      },
+      {
+        id: 16,
+        brand: "Dell",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/m/u/musebud_grey.jpg?rnd=20200526195200",
+        price: 1500,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Laptop",
+      },
+    ],
+    users: [
+      {
+        id: 1,
+        username: "admin",
+        password: "admin",
+        firstName: "VVivek",
+        lastName: "AAgarwal",
+      },
+    ],
+  };
+  const userProtectedData = [
+    {
+      route: "orders",
+      methods: ["GET", "PUT", "PATCH", "DELETE"],
+      isUserSpecific: true, // in GET request, data filtered by the current user will be returned
+    },
+  ];
+
+  // Initialize the data
+  initializeFakeApiData(userInitialData, true);
+  setProtectedFakeApiData(userProtectedData, true);
+
+
+      // todo 1. : ability to populate initialData & a protected route by default. this will be used in all of my examples.
+      // todo 2. : setUserSpecificData: mandatory userId field, Mandatory JWT token, GET will retrun only the result for current user
+      //           better it should be an option in protectedData {route: '', protectedMethods: [], isUserSpecific}
+      // todo 2. : url to reset all to default initial data / user provided initial data
 
       document
         .getElementById("click-me")
@@ -81,7 +237,7 @@
             // );
 
             const res = await fetch(
-              "https://mockapi.com/premium-posts?q=new&_limit=3&_page=1",
+              "https://mockapi.com/products?q=Zebronics&_limit=3&_page=1",
               {
                 method: "GET",
                 headers: {

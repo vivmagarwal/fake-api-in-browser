@@ -1,4 +1,6 @@
 (function (global) {
+  const keyPrefix = "fakeCollection_";
+
   function generateJWT(userId) {
     const header = {
       alg: "HS256",
@@ -20,8 +22,7 @@
   }
 
   function verifyJWT(jwt) {
-    const [encodedHeader, encodedPayload, encodedSignature] =
-      jwt.split(".");
+    const [encodedHeader, encodedPayload, encodedSignature] = jwt.split(".");
 
     if (!encodedHeader || !encodedPayload || !encodedSignature) {
       return false;
@@ -45,27 +46,48 @@
   }
 
   function getLocalStorageData(key) {
-    const data = localStorage.getItem(key);
+    const data = localStorage.getItem(keyPrefix + key);
     return data ? JSON.parse(data) : null;
   }
 
   function setLocalStorageData(key, data) {
-    localStorage.setItem(key, JSON.stringify(data));
+    localStorage.setItem(keyPrefix + key, JSON.stringify(data));
   }
 
-  function updateLocalStorageData(key, newData) {
-    const existingData = getLocalStorageData(key);
-    const updatedData = { ...existingData, ...newData };
-    setLocalStorageData(key, updatedData);
-  }
+  function getLocalStorageSchema() {
+    const schema = {};
 
-  function initializeFakeApiData(initialData) {
-    for (const key in initialData) {
-      if (!getLocalStorageData(key)) {
-        setLocalStorageData(key, initialData[key]);
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+
+      if (key.startsWith(keyPrefix)) {
+        const collectionKey = key.replace(keyPrefix, "");
+        const data = getLocalStorageData(collectionKey);
+        schema[collectionKey] = data;
       }
     }
 
+    return schema;
+  }
+
+  function updateLocalStorageData(key, newData) {
+    const data = getLocalStorageData(key);
+    if (!data) {
+      throw new Error(`Data for key "${key}" not found`);
+    }
+    const updatedData = data.map((item) =>
+      item.id === newData.id ? newData : item
+    );
+    setLocalStorageData(key, updatedData);
+  }
+
+  function initializeFakeApiData(initialData, overwrite = false) {
+    for (const key in initialData) {
+      if (overwrite || !getLocalStorageData(key)) {
+        setLocalStorageData(key, initialData[key]);
+      }
+    }
+  
     if (!getLocalStorageData("users")) {
       setLocalStorageData("users", [
         {
@@ -78,9 +100,15 @@
       ]);
     }
   }
-
+  
+  
   function setProtectedFakeApiData(data) {
-    localStorage.setItem("protectedData", JSON.stringify(data));
+    const currentData = JSON.parse(
+      localStorage.getItem("protectedData") || "[]"
+    );
+    if (currentData.length === 0) {
+      localStorage.setItem("protectedData", JSON.stringify(data));
+    }
   }
 
   function registerHandler(body) {
@@ -275,7 +303,7 @@
     const urlWithoutQueryParams = urlWithoutBaseUrl.split("?")[0];
     const urlParts = urlWithoutQueryParams.split("/");
     const lastPart = urlParts[urlParts.length - 1];
-    return Object.keys(initialData).find((k) => k === lastPart);
+    return Object.keys(getLocalStorageSchema()).find((k) => k === lastPart);
   }
 
   function getIdFromUrl(url) {
@@ -329,10 +357,7 @@
         data = getAllByFullTextSearch(data, queryParams.q);
       }
 
-      if (
-        queryParams._limit !== undefined ||
-        queryParams._page !== undefined
-      ) {
+      if (queryParams._limit !== undefined || queryParams._page !== undefined) {
         const limit = parseInt(queryParams._limit, 10) || 10;
         const page = parseInt(queryParams._page, 10) || 1;
         return getPaginatedDataHandler(data, limit, page);
@@ -445,6 +470,186 @@
     });
   }
 
+  // Default data
+  const defaultInitialData = {
+    orders: [
+      {
+        id: 1,
+        userId: 1,
+        items: [
+          { productId: 1, quantity: 2 },
+          { productId: 2, quantity: 1 },
+        ],
+        discount: 0,
+      },
+    ],
+    products: [
+      {
+        id: 1,
+        brand: "Zebronics",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/n/y/nyfboat000113_1_cc965b26.jpg?rnd=20200526195200",
+        price: 100,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Laptop",
+      },
+      {
+        id: 2,
+        brand: "Zebronics",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/n/y/nyfblta000011_1.jpg?rnd=20200526195200",
+        price: 120,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Mobile",
+      },
+      {
+        id: 3,
+        brand: "Zebronics",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/b/c/bc60a_1_c82d81cb.jpg?rnd=20200526195200",
+        price: 130,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Head_Phones",
+      },
+      {
+        id: 4,
+        brand: "Zebronics",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/6/1/619660798426_1_727221ba.jpg?rnd=20200526195200",
+        price: 100,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Speakers",
+      },
+      {
+        id: 5,
+        brand: "Zebronics",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/c/_/c_8907605107849_1_655fcbdf.jpg?rnd=20200526195200",
+        price: 200,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Smart_TV",
+      },
+      {
+        id: 6,
+        brand: "Apple",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/c/o/cor-nyfcrca000039_1_369033fe.jpg?rnd=20200526195200",
+        price: 235,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Laptop",
+      },
+      {
+        id: 7,
+        brand: "Apple",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/a/m/ambrane_8904258106557_1_aff3c266.jpg?rnd=20200526195200",
+        price: 250,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Mobile",
+      },
+      {
+        id: 8,
+        brand: "Apple",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/n/y/nyfblta000009_1.jpg?rnd=20200526195200",
+        price: 100,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Head_Phones",
+      },
+      {
+        id: 9,
+        brand: "Apple",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/z/b/zb_8906108615899_1_44867a4c.jpg?rnd=20200526195200",
+        price: 325,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Speakers",
+      },
+      {
+        id: 10,
+        brand: "Apple",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/u/d/ud_bk_1_2f275806.jpg?rnd=20200526195200",
+        price: 350,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Smart_TV",
+      },
+      {
+        id: 11,
+        brand: "HP",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/g/r/grey_1_398b5873.jpg?rnd=20200526195200",
+        price: 375,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Laptop",
+      },
+      {
+        id: 12,
+        brand: "HP",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/b/o/boult-audio-ba-nk-freepods-black_1_17c2dc71.jpg?rnd=20200526195200",
+        price: 100,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Mobile",
+      },
+      {
+        id: 13,
+        brand: "HP",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/d/i/dive_green_1.jpg?rnd=20200526195200",
+        price: 500,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Head_Phones",
+      },
+      {
+        id: 14,
+        brand: "HP",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/p/e/pebble-8906086572115_1_34a9b9fd.jpg?rnd=20200526195200",
+        price: 1000,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Speakers",
+      },
+      {
+        id: 15,
+        brand: "HP",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/p/p/pportronics-por-1195_1_e9dc8e9f.jpg?rnd=20200526195200",
+        price: 750,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Smart_TV",
+      },
+      {
+        id: 16,
+        brand: "Dell",
+        img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/m/u/musebud_grey.jpg?rnd=20200526195200",
+        price: 1500,
+        details:
+          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+        category: "Laptop",
+      },
+    ],
+    users: [
+      {
+        id: 1,
+        username: "admin",
+        password: "admin",
+        firstName: "Vivek",
+        lastName: "Agarwal",
+      },
+    ],
+  };
+  const defailtProtectedData = [
+    {
+      route: "orders",
+      methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+      isUserSpecific: true, // in GET request, data filtered by the current user will be returned
+    },
+  ];
+
+  // Initialize the data
+  initializeFakeApiData(defaultInitialData);
+  setProtectedFakeApiData(defailtProtectedData);
 
   // Expose functions
   global.initializeFakeApiData = initializeFakeApiData;
