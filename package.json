@@ -1,6 +1,6 @@
 {
   "name": "fake-api-in-browser",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "A mock API in the browser that intercepts fetch requests and responds with customizable data",
   "main": "fake-api-in-browser.js",
   "scripts": {

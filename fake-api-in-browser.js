@@ -533,19 +533,19 @@
           let isRouteUserSpecific = false;
           let userId;
 
-          console.log('protectedData: ', protectedData)
+          console.log("protectedData: ", protectedData);
 
           for (let i = 0; i < protectedData.length; i++) {
             let keyFromUrl = getKeyFromUrl(url); //fakeCollection_products__default
 
-            console.log('keyFromUrl: ', keyFromUrl)
+            console.log("keyFromUrl: ", keyFromUrl);
 
             if (keyFromUrl) {
               const itemRouteKey = protectedData[i].route.toLowerCase().trim(); // orders
-              console.log('itemRouteKey: ', itemRouteKey);
+              console.log("itemRouteKey: ", itemRouteKey);
 
-              let trimmedKeyFromUrl = keyFromUrl.replace("fakeCollection_","");
-              trimmedKeyFromUrl = trimmedKeyFromUrl.replace("__default","");
+              let trimmedKeyFromUrl = keyFromUrl.replace("fakeCollection_", "");
+              trimmedKeyFromUrl = trimmedKeyFromUrl.replace("__default", "");
 
               console.log("trimmedKeyFromUrl: ", trimmedKeyFromUrl);
 
@@ -560,7 +560,7 @@
             }
           }
 
-          console.log('protectedRoute: ', protectedRoute)
+          console.log("protectedRoute: ", protectedRoute);
 
           if (
             protectedRoute &&
@@ -572,14 +572,17 @@
             throw new Error("Unauthorized");
           }
 
-
-          if (protectedRoute && protectedRoute.methods.includes(method) && headers.Authorization && verifyJWT(headers.Authorization)) {
+          if (
+            protectedRoute &&
+            protectedRoute.methods.includes(method) &&
+            headers.Authorization &&
+            verifyJWT(headers.Authorization)
+          ) {
             let headerAuthToken = headers.Authorization;
             if (headerAuthToken) {
-              userId = getUserIdFromJwt(headerAuthToken)
-            };
+              userId = getUserIdFromJwt(headerAuthToken);
+            }
           }
-
 
           // Handle special routes: /register and /login
           if (url.endsWith("/register") && method === "POST") {
@@ -648,8 +651,9 @@
         brand: "Zebronics",
         img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/n/y/nyfboat000113_1_cc965b26.jpg?rnd=20200526195200",
         price: 100,
+        title: "Zebronics Laptop",
         details:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+          "Experience powerful performance with this sleek and stylish Zebronics laptop. Equipped with a fast processor, it ensures seamless multitasking and a smooth user experience.",
         category: "Laptop",
       },
       {
@@ -657,8 +661,9 @@
         brand: "Zebronics",
         img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/n/y/nyfblta000011_1.jpg?rnd=20200526195200",
         price: 120,
+        title: "Zebronics Mobile",
         details:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+          "Stay connected with this versatile Zebronics mobile phone. Its sleek design and powerful features make it the perfect choice for both work and play.",
         category: "Mobile",
       },
       {
@@ -666,8 +671,9 @@
         brand: "Zebronics",
         img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/b/c/bc60a_1_c82d81cb.jpg?rnd=20200526195200",
         price: 130,
+        title: "Zebronics Headphones",
         details:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+          "Immerse yourself in your favorite tunes with these comfortable and stylish Zebronics headphones. Their superior sound quality and noise cancellation make them ideal for any music lover.",
         category: "Head_Phones",
       },
       {
@@ -675,8 +681,9 @@
         brand: "Zebronics",
         img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/6/1/619660798426_1_727221ba.jpg?rnd=20200526195200",
         price: 100,
+        title: "Zebronics Speakers",
         details:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+          "Upgrade your audio experience with these powerful Zebronics speakers. Perfect for home or office use, they deliver crisp, clear sound for all your multimedia needs.",
         category: "Speakers",
       },
       {
@@ -684,8 +691,9 @@
         brand: "Zebronics",
         img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/c/_/c_8907605107849_1_655fcbdf.jpg?rnd=20200526195200",
         price: 200,
+        title: "Zebronics Smart TV",
         details:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+          "Bring entertainment to life with this stunning Zebronics Smart TV. Its high-resolution display and smart features make it the perfect addition to any living room.",
         category: "Smart_TV",
       },
       {
@@ -693,8 +701,9 @@
         brand: "Apple",
         img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/c/o/cor-nyfcrca000039_1_369033fe.jpg?rnd=20200526195200",
         price: 235,
+        title: "Apple MacBook",
         details:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+          "Experience unparalleled performance and style with this sleek Apple MacBook. Its powerful processor and slim design make it the ideal choice for professionals and creatives alike.",
         category: "Laptop",
       },
       {
@@ -702,8 +711,9 @@
         brand: "Apple",
         img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/a/m/ambrane_8904258106557_1_aff3c266.jpg?rnd=20200526195200",
         price: 250,
+        title: "Apple iPhone",
         details:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+          "Stay connected and capture every moment with this sleek and powerful Apple iPhone. Its advanced camera and cutting-edge technology make it the perfect companion for your busy lifestyle.",
         category: "Mobile",
       },
       {
@@ -711,8 +721,9 @@
         brand: "Apple",
         img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/n/y/nyfblta000009_1.jpg?rnd=20200526195200",
         price: 100,
+        title: "Apple AirPods",
         details:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+          "Experience true wireless freedom with these Apple AirPods. Their seamless design and exceptional audio quality make them the perfect accessory for music lovers on the go.",
         category: "Head_Phones",
       },
       {
@@ -720,8 +731,9 @@
         brand: "Apple",
         img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/z/b/zb_8906108615899_1_44867a4c.jpg?rnd=20200526195200",
         price: 325,
+        title: "Apple HomePod",
         details:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+          "Elevate your home audio experience with the Apple HomePod. Its rich sound and smart features make it the perfect addition to any room.",
         category: "Speakers",
       },
       {
@@ -729,8 +741,9 @@
         brand: "Apple",
         img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/u/d/ud_bk_1_2f275806.jpg?rnd=20200526195200",
         price: 350,
+        title: "Apple Smart TV",
         details:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+          "Transform your entertainment experience with this Apple Smart TV. Its stunning display and advanced features make it the perfect centerpiece for your living room.",
         category: "Smart_TV",
       },
       {
@@ -738,8 +751,9 @@
         brand: "HP",
         img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/g/r/grey_1_398b5873.jpg?rnd=20200526195200",
         price: 375,
+        title: "HP Laptop",
         details:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+          "Power through your day with this high-performance HP laptop. Its sleek design and advanced features make it perfect for both work and play.",
         category: "Laptop",
       },
       {
@@ -747,8 +761,9 @@
         brand: "HP",
         img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/b/o/boult-audio-ba-nk-freepods-black_1_17c2dc71.jpg?rnd=20200526195200",
         price: 100,
+        title: "HP Mobile",
         details:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+          "Stay connected and productive with this versatile HP mobile phone. Its sleek design and powerful features make it the perfect choice for both work and play.",
         category: "Mobile",
       },
       {
@@ -756,8 +771,9 @@
         brand: "HP",
         img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/d/i/dive_green_1.jpg?rnd=20200526195200",
         price: 500,
+        title: "HP Headphones",
         details:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+          "Immerse yourself in your favorite tunes with these comfortable and stylish HP headphones. Their superior sound quality and noise cancellation make them ideal for any music lover.",
         category: "Head_Phones",
       },
       {
@@ -765,8 +781,9 @@
         brand: "HP",
         img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/p/e/pebble-8906086572115_1_34a9b9fd.jpg?rnd=20200526195200",
         price: 1000,
+        title: "HP Speakers",
         details:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+          "Upgrade your audio experience with these powerful HP speakers. Perfect for home or office use, they deliver crisp, clear sound for all your multimedia needs.",
         category: "Speakers",
       },
       {
@@ -774,8 +791,9 @@
         brand: "HP",
         img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/p/p/pportronics-por-1195_1_e9dc8e9f.jpg?rnd=20200526195200",
         price: 750,
+        title: "HP Smart TV",
         details:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+          "Bring entertainment to life with this stunning HP Smart TV. Its high-resolution display and smart features make it the perfect addition to any living room.",
         category: "Smart_TV",
       },
       {
@@ -783,11 +801,13 @@
         brand: "Dell",
         img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/m/u/musebud_grey.jpg?rnd=20200526195200",
         price: 1500,
+        title: "Dell Laptop",
         details:
-          "Lorem ipsum dolor sit amet consectetur adipisicing elit. Iusto, sequi.",
+          "Experience powerful performance and sleek design with this Dell laptop. Its advanced features make it perfect for both work and play, ensuring a smooth user experience.",
         category: "Laptop",
       },
     ],
+
     users: [
       {
         id: 1,
