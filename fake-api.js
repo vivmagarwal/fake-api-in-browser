@@ -46,12 +46,50 @@
   }
 
   function getLocalStorageData(key) {
-    const data = localStorage.getItem(keyPrefix + key);
-    return data ? JSON.parse(data) : null;
+    const hasKeyPrefix = key.startsWith(keyPrefix);
+    const hasUserSuffix = key.endsWith("__user") || key.endsWith("__default");
+
+    if (hasKeyPrefix && hasUserSuffix) {
+      return JSON.parse(localStorage.getItem(key));
+    }
+
+    const userKey = key + "__user";
+    const defaultKey = key + "__default";
+    const userData = JSON.parse(localStorage.getItem(keyPrefix + userKey));
+    const defaultData = JSON.parse(
+      localStorage.getItem(keyPrefix + defaultKey)
+    );
+
+    return userData ? userData : defaultData;
   }
 
-  function setLocalStorageData(key, data) {
-    localStorage.setItem(keyPrefix + key, JSON.stringify(data));
+  function setLocalStorageData(key, data, isUserProvided = true) {
+    const suffix = isUserProvided ? "__user" : "__default";
+    localStorage.setItem(keyPrefix + key + suffix, JSON.stringify(data));
+  }
+
+  function getLocalStorageCollections() {
+    const schema = {};
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+
+      if (key.startsWith(keyPrefix)) {
+        const collectionName = key.split("__")[1];
+        const collectionType = key.split("__")[2];
+
+        // If a user collection is found, it should take precedence
+        if (collectionType === "user") {
+          schema[collectionName] = true;
+        } else if (collectionType === "default" && !schema[collectionName]) {
+          // If a default collection is found and there is no user collection,
+          // use the default collection
+          schema[collectionName] = true;
+        }
+      }
+    }
+
+    return schema;
   }
 
   function getLocalStorageSchema() {
@@ -61,9 +99,7 @@
       const key = localStorage.key(i);
 
       if (key.startsWith(keyPrefix)) {
-        const collectionKey = key.replace(keyPrefix, "");
-        const data = getLocalStorageData(collectionKey);
-        schema[collectionKey] = data;
+        schema[key] = true;
       }
     }
 
@@ -81,13 +117,13 @@
     setLocalStorageData(key, updatedData);
   }
 
-  function initializeFakeApiData(initialData, overwrite = false) {
+  function initializeFakeApiData(initialData, isUserProvided = true) {
     for (const key in initialData) {
-      if (overwrite || !getLocalStorageData(key)) {
-        setLocalStorageData(key, initialData[key]);
+      if (!getLocalStorageData(key, isUserProvided)) {
+        setLocalStorageData(key, initialData[key], isUserProvided);
       }
     }
-  
+
     if (!getLocalStorageData("users")) {
       setLocalStorageData("users", [
         {
@@ -100,8 +136,7 @@
       ]);
     }
   }
-  
-  
+
   function setProtectedFakeApiData(data) {
     const currentData = JSON.parse(
       localStorage.getItem("protectedData") || "[]"
@@ -161,7 +196,6 @@
 
   function getByIdHandler(key, id) {
     const data = getLocalStorageData(key);
-    console.log(key);
     const item = data.find((item) => item.id === id); // Updated line
 
     if (item) {
@@ -303,7 +337,24 @@
     const urlWithoutQueryParams = urlWithoutBaseUrl.split("?")[0];
     const urlParts = urlWithoutQueryParams.split("/");
     const lastPart = urlParts[urlParts.length - 1];
-    return Object.keys(getLocalStorageSchema()).find((k) => k === lastPart);
+  
+    // Find the user key or the default key
+    const localStorageKeys = Object.keys(getLocalStorageSchema());
+    let userKey, defaultKey;
+  
+    for (const key of localStorageKeys) {
+      if (key.includes(lastPart)) {
+        if (key.includes("__user")) {
+          userKey = key;
+        } else if (key.includes("__default")) {
+          defaultKey = key;
+        }
+      }
+    }
+  
+    // Return the user key if it exists, otherwise return the default key
+    const key = userKey || defaultKey;
+    return key;
   }
 
   function getIdFromUrl(url) {
@@ -345,6 +396,10 @@
     const key = getKeyFromUrl(url);
     const id = getIdFromUrl(url);
     const queryParams = getQueryParamsFromUrl(url);
+
+    console.log("key", key);
+    console.log("id", id);
+    console.log("queryParams", queryParams);
 
     let data;
 
@@ -417,11 +472,14 @@
           const protectedData = JSON.parse(
             localStorage.getItem("protectedData") || "[]"
           );
+
           const protectedRoute = protectedData.find((item) => {
-            return (
-              getKeyFromUrl(url).toLowerCase().trim() ===
-              item.route.toLowerCase().trim()
-            );
+            console.log(item)
+            console.log(url);
+            console.log(getKeyFromUrl(url))
+            const urlKey = getKeyFromUrl(url).toLowerCase().trim();
+            const itemRouteKey = item.route.toLowerCase().trim();
+            return urlKey === itemRouteKey;
           });
 
           if (
@@ -648,7 +706,7 @@
   ];
 
   // Initialize the data
-  initializeFakeApiData(defaultInitialData);
+  initializeFakeApiData(defaultInitialData, false);
   setProtectedFakeApiData(defailtProtectedData);
 
   // Expose functions
