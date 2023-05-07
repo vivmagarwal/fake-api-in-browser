@@ -45,6 +45,29 @@
     return true;
   }
 
+  function getLocalStorageDataByCreator(key, isUserProvided = true) {
+    const hasKeyPrefix = key.startsWith(keyPrefix);
+    const hasUserSuffix = key.endsWith("__user") || key.endsWith("__default");
+
+    if (hasKeyPrefix && hasUserSuffix) {
+      return JSON.parse(localStorage.getItem(key));
+    }
+
+    const userKey = key + "__user";
+    const defaultKey = key + "__default";
+
+    if (isUserProvided) {
+      const userData = JSON.parse(localStorage.getItem(keyPrefix + userKey));
+      return userData;
+    } else {
+      const defaultData = JSON.parse(
+        localStorage.getItem(keyPrefix + defaultKey)
+      );
+      return defaultData;
+    }
+  }
+
+  // returns userData if avaliable else defaultData
   function getLocalStorageData(key) {
     const hasKeyPrefix = key.startsWith(keyPrefix);
     const hasUserSuffix = key.endsWith("__user") || key.endsWith("__default");
@@ -119,12 +142,12 @@
 
   function initializeFakeApiData(initialData, isUserProvided = true) {
     for (const key in initialData) {
-      if (!getLocalStorageData(key, isUserProvided)) {
+      if (!getLocalStorageDataByCreator(key, isUserProvided)) {
         setLocalStorageData(key, initialData[key], isUserProvided);
       }
     }
 
-    if (!getLocalStorageData("users")) {
+    if (!getLocalStorageDataByCreator("users", isUserProvided)) {
       setLocalStorageData("users", [
         {
           id: 1,
@@ -397,9 +420,9 @@
     const id = getIdFromUrl(url);
     const queryParams = getQueryParamsFromUrl(url);
 
-    console.log("key", key);
-    console.log("id", id);
-    console.log("queryParams", queryParams);
+    // console.log("key", key);
+    // console.log("id", id);
+    // console.log("queryParams", queryParams);
 
     let data;
 
@@ -474,9 +497,6 @@
           );
 
           const protectedRoute = protectedData.find((item) => {
-            console.log(item)
-            console.log(url);
-            console.log(getKeyFromUrl(url))
             const urlKey = getKeyFromUrl(url).toLowerCase().trim();
             const itemRouteKey = item.route.toLowerCase().trim();
             return urlKey === itemRouteKey;

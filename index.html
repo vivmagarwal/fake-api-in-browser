@@ -28,7 +28,7 @@
     products: [
       {
         id: 1,
-        brand: "ZZZebronics",
+        brand: "ZZZzzzzzzebronics",
         img: "https://adn-static1.nykaa.com/nykdesignstudio-images/tr:w-550,/pub/media/catalog/product/n/y/nyfboat000113_1_cc965b26.jpg?rnd=20200526195200",
         price: 100,
         details:
@@ -191,7 +191,7 @@
 
   // Initialize the data
   initializeFakeApiData(userInitialData);
-  setProtectedFakeApiData(userProtectedData, true);
+  setProtectedFakeApiData(userProtectedData);
 
 
       // todo 1. : ability to populate initialData & a protected route by default. this will be used in all of my examples.
@@ -237,7 +237,7 @@
             // );
 
             const res = await fetch(
-              "https://mockapi.com/products?q=Zebronics&_limit=3&_page=1",
+              "https://mockapi.com/products?q=ronics&_limit=3&_page=1&_sort=id&_order=desc",
               {
                 method: "GET",
                 headers: {
