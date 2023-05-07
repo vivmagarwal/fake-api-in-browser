@@ -1,6 +1,11 @@
 (function (global) {
   const keyPrefix = "fakeCollection_";
 
+  function trimBearerPrefix(str) {
+    console.log('***str***', str);
+    return str.replace(/^Bearer\s+/i, '');
+  }
+
   function generateJWT(userId) {
     const header = {
       alg: "HS256",
@@ -22,7 +27,8 @@
   }
 
   function verifyJWT(jwt) {
-    const [encodedHeader, encodedPayload, encodedSignature] = jwt.split(".");
+    let token = trimBearerPrefix(jwt);
+    const [encodedHeader, encodedPayload, encodedSignature] = token.split(".");
 
     if (!encodedHeader || !encodedPayload || !encodedSignature) {
       return false;
@@ -45,6 +51,28 @@
     return true;
   }
 
+  function getUserIdFromJwt(jwt) {
+    let token = trimBearerPrefix(jwt);
+
+    try {
+      if (!verifyJWT(token)) {
+        console.error('Invalid or expired JWT token');
+        return null;
+      }
+  
+      const encodedPayload = token.split('.')[1];
+      const payloadBase64 = encodedPayload.replace(/-/g, '+').replace(/_/g, '/');
+      const payloadJson = atob(payloadBase64);
+      const payload = JSON.parse(payloadJson);
+  
+      const userId = payload.userId; // Assuming the payload contains a "userId" claim
+      return userId;
+    } catch (error) {
+      console.error('Error decoding JWT token:', error);
+      return null;
+    }
+  }
+  
   function getLocalStorageDataByCreator(key, isUserProvided = true) {
     const hasKeyPrefix = key.startsWith(keyPrefix);
     const hasUserSuffix = key.endsWith("__user") || key.endsWith("__default");
@@ -87,8 +115,15 @@
   }
 
   function setLocalStorageData(key, data, isUserProvided = true) {
-    const suffix = isUserProvided ? "__user" : "__default";
-    localStorage.setItem(keyPrefix + key + suffix, JSON.stringify(data));
+    if (
+      key.startsWith(keyPrefix) &&
+      (key.endsWith("__user") || key.endsWith("__default"))
+    ) {
+      localStorage.setItem(key, JSON.stringify(data));
+    } else {
+      const suffix = isUserProvided ? "__user" : "__default";
+      localStorage.setItem(keyPrefix + key + suffix, JSON.stringify(data));
+    }
   }
 
   function getLocalStorageCollections() {
@@ -230,10 +265,16 @@
     }
   }
 
-  function postHandler(key, body) {
+  function postHandler(key, body, options) {
     const data = getLocalStorageData(key);
-
     const newItem = JSON.parse(body);
+    const isRouteUserSpecific = options && options.isRouteUserSpecific
+    const userIdFromToken = options && options.userId
+
+    if (userIdFromToken && isRouteUserSpecific && !newItem.userId) {
+      newItem['userId'] = userIdFromToken;
+    } 
+
     if (!newItem.id) {
       const maxId =
         data.length > 0 ? Math.max(...data.map((item) => item.id)) : 0;
@@ -246,25 +287,33 @@
     return new Response(JSON.stringify(newItem), { status: 201 });
   }
 
-  function putHandler(key, id, body) {
+  function putHandler(key, id, body, options) {
     const data = getLocalStorageData(key);
-    const index = data.findIndex((item) => item.id === id);
+    const index = data.findIndex((item) => item.id == id);
+    const isRouteUserSpecific = options && options.isRouteUserSpecific
+    const userIdFromToken = options && options.userId
+
 
     if (index === -1) {
       throw { status: 404, message: "Not Found" };
     }
-
+    
     const updatedItem = JSON.parse(body);
     updatedItem.id = id;
+
+    if (userIdFromToken && isRouteUserSpecific && !newItem.userId) {
+      newItem['userId'] = userIdFromToken;
+    } 
+
     data[index] = updatedItem;
     setLocalStorageData(key, data);
-
+    
     return new Response(JSON.stringify(updatedItem), { status: 200 });
   }
 
   function deleteHandler(key, id) {
     const data = getLocalStorageData(key);
-    const index = data.findIndex((item) => item.id === id);
+    const index = data.findIndex((item) => item.id == id);
 
     if (index === -1) {
       throw { status: 404, message: "Not Found" };
@@ -273,18 +322,25 @@
     data.splice(index, 1);
     setLocalStorageData(key, data);
 
-    return new Response(null, { status: 204 });
+    return new Response(JSON.stringify({deleted: id}), { status: 200 });
   }
 
-  function patchHandler(key, id, body) {
+  function patchHandler(key, id, body, options) {
     const data = getLocalStorageData(key);
-    const index = data.findIndex((item) => item.id === id);
+    const index = data.findIndex((item) => item.id == id);
+    const isRouteUserSpecific = options && options.isRouteUserSpecific
+    const userIdFromToken = options && options.userId
 
     if (index === -1) {
       throw { status: 404, message: "Not Found" };
     }
 
     const newData = JSON.parse(body);
+
+    if (userIdFromToken && isRouteUserSpecific && !newItem.userId) {
+      newItem['userId'] = userIdFromToken;
+    } 
+
     data[index] = { ...data[index], ...newData };
     setLocalStorageData(key, data);
 
@@ -297,6 +353,69 @@
         String(value).toLowerCase().includes(query.toLowerCase())
       )
     );
+  }
+
+  function applyCustomFilters(data, customFilters) {
+    const filteredData = [];
+
+    for (const item of data) {
+      let matchesAllFilters = true;
+
+      for (const [param, value] of customFilters) {
+        const operatorMatch = param.match(/(.+)(_gte|_lte|_ne|_like)$/);
+
+        if (operatorMatch) {
+          const [, originalParam, operator] = operatorMatch;
+
+          switch (operator) {
+            case "_gte":
+              if (
+                item.hasOwnProperty(originalParam) &&
+                item[originalParam] < value
+              ) {
+                matchesAllFilters = false;
+              }
+              break;
+            case "_lte":
+              if (
+                item.hasOwnProperty(originalParam) &&
+                item[originalParam] > value
+              ) {
+                matchesAllFilters = false;
+              }
+              break;
+            case "_ne":
+              if (
+                item.hasOwnProperty(originalParam) &&
+                item[originalParam] == value
+              ) {
+                matchesAllFilters = false;
+              }
+              break;
+            case "_like":
+              if (
+                item.hasOwnProperty(originalParam) &&
+                !item[originalParam].includes(value)
+              ) {
+                matchesAllFilters = false;
+              }
+              break;
+          }
+        } else if (item.hasOwnProperty(param) && item[param] != value) {
+          matchesAllFilters = false;
+        }
+
+        if (!matchesAllFilters) {
+          break;
+        }
+      }
+
+      if (matchesAllFilters) {
+        filteredData.push(item);
+      }
+    }
+
+    return filteredData;
   }
 
   function customFilter(data, customFilters) {
@@ -326,19 +445,14 @@
     });
   }
 
-  function getFilteredDataHandler(key, queryParams) {
-    let data = getLocalStorageData(key);
+  function getFilteredDataHandler(data, queryParams, id) {
+    // let data = getLocalStorageData(key);
 
     // Full-text search
     if (queryParams.q) {
       data = fullTextSearch(data, queryParams.q);
+      console.log("data after fulltext search: ", data);
     }
-
-    // Custom filter for any other query parameters
-    const customFilters = Object.entries(queryParams).filter(
-      ([param]) => !["q", "_sort", "_order"].includes(param)
-    );
-    data = customFilter(data, customFilters);
 
     // Sorting
     if (queryParams._sort) {
@@ -347,11 +461,32 @@
         ? queryParams._order.split(",")
         : sortKeys.map(() => "asc");
 
+      console.log(sortKeys, sortOrder);
+
       data = sortData(data, sortKeys, sortOrder);
+      console.log("data after sorting: ", data);
     }
 
-    const response = new Response(JSON.stringify(data), { status: 200 });
-    return Promise.resolve(response);
+    // Custom filter for any other query parameters
+    const filterKeys = ["q", "_sort", "_order", "_limit", "_page"];
+    const customFilters = Object.entries(queryParams).filter(
+      ([param]) => !filterKeys.includes(param)
+    );
+    console.log("customFilters :", customFilters);
+    data = applyCustomFilters(data, customFilters);
+    console.log("data after custom filter: ", data);
+
+    // Pagination
+    if (queryParams._limit !== undefined || queryParams._page !== undefined) {
+      const limit = parseInt(queryParams._limit, 10) || 10;
+      const page = parseInt(queryParams._page, 10) || 1;
+      data = getPaginatedDataHandler(data, limit, page);
+    }
+    console.log("data after pagination", data);
+
+    return data;
+    // const response = new Response(JSON.stringify(data), { status: 200 });
+    // return Promise.resolve(response);
   }
 
   function getKeyFromUrl(url) {
@@ -359,30 +494,40 @@
     const urlWithoutBaseUrl = url.replace(BASE_URL, "");
     const urlWithoutQueryParams = urlWithoutBaseUrl.split("?")[0];
     const urlParts = urlWithoutQueryParams.split("/");
-    const lastPart = urlParts[urlParts.length - 1];
-  
-    // Find the user key or the default key
+    const keyPart = urlParts[1];
+
+    console.log("keyPart: ", keyPart); // employees
+
     const localStorageKeys = Object.keys(getLocalStorageSchema());
+    console.log("localStorageKeys: ", localStorageKeys);
+
     let userKey, defaultKey;
-  
-    for (const key of localStorageKeys) {
-      if (key.includes(lastPart)) {
-        if (key.includes("__user")) {
-          userKey = key;
-        } else if (key.includes("__default")) {
-          defaultKey = key;
-        }
-      }
-    }
-  
+
+    // find defaultKey
+    defaultKey = localStorageKeys.find(
+      (item) => item.endsWith("__default") && item.includes(keyPart.trim())
+    );
+
+    // find userKey
+    userKey = localStorageKeys.find(
+      (item) => item.endsWith("__user") && item.includes(keyPart.trim())
+    );
+
+    console.log("userKey:", userKey);
+    console.log("defaultKey:", defaultKey);
+
     // Return the user key if it exists, otherwise return the default key
     const key = userKey || defaultKey;
     return key;
   }
 
   function getIdFromUrl(url) {
-    const idMatch = url.match(/\/(\d+)$/);
-    return idMatch ? parseInt(idMatch[1], 10) : null;
+    const BASE_URL = "https://mockapi.com";
+    const urlWithoutBaseUrl = url.replace(BASE_URL, "");
+    const urlWithoutQueryParams = urlWithoutBaseUrl.split("?")[0];
+    const urlParts = urlWithoutQueryParams.split("/");
+    const idPart = urlParts[2];
+    return idPart;
   }
 
   function getQueryParamsFromUrl(url) {
@@ -400,63 +545,63 @@
     const start = (page - 1) * limit;
     const end = start + limit;
     const paginatedData = data.slice(start, end);
-    const totalCount = data.length;
+    return paginatedData;
+  }
+
+  async function handleCRUDOperations(url, method, body, options) {
+    const key = getKeyFromUrl(url);
+    const id = getIdFromUrl(url);
+    const queryParams = getQueryParamsFromUrl(url);
+    const isRouteUserSpecific = options && options.isRouteUserSpecific
+    const userIdFromToken = options && options.userId
+
+    console.log("key: ", key);
+    console.log("id: ", id);
+    console.log("queryParams: ", queryParams);
+    console.log("isRouteUserSpecific: ", isRouteUserSpecific)
+    console.log("userIdFromToken", userIdFromToken)
+
+    let data;
+    let totalCount;
+
+    if (method === "GET") {
+      data = await getAllHandler(key);
+      console.log("all data:", data);
+      totalCount = data.length || 0;
+
+      if (isRouteUserSpecific) {
+        data = applyCustomFilters(data, [["userId", userIdFromToken]]);
+        console.log("data after Userspecific filter:", data);
+      }
+
+      if (id) {
+        data = applyCustomFilters(data, [["id", id]]);
+        console.log("data after ID filter:", data);
+      }
+
+      if (Object.keys(queryParams).length > 0) {
+        data = getFilteredDataHandler(data, queryParams);
+      }
+    } else if (method === "POST") {
+      return await postHandler(key, body, {isRouteUserSpecific: isRouteUserSpecific, userId: userIdFromToken});
+    } else if (method === "PUT" && id) {
+      return await putHandler(key, id, body);
+    } else if (method === "DELETE" && id) {
+      return await deleteHandler(key, id);
+    } else if (method === "PATCH" && id) {
+      return await patchHandler(key, id, body);
+    } else {
+      throw new Error(`Invalid request for url: ${url}`);
+    }
 
     const responseHeaders = {
       "Content-Type": "application/json",
       "X-Total-Count": totalCount,
     };
 
-    const response = new Response(JSON.stringify(paginatedData), {
-      status: 200,
-      headers: responseHeaders,
-    });
-
-    return response;
-  }
-
-  async function handleCRUDOperations(url, method, body) {
-    const key = getKeyFromUrl(url);
-    const id = getIdFromUrl(url);
-    const queryParams = getQueryParamsFromUrl(url);
-
-    // console.log("key", key);
-    // console.log("id", id);
-    // console.log("queryParams", queryParams);
-
-    let data;
-
-    if (method === "GET" && id) {
-      data = await getByIdHandler(key, id);
-    } else if (method === "GET") {
-      data = await getAllHandler(key);
-
-      if (queryParams.q) {
-        data = getAllByFullTextSearch(data, queryParams.q);
-      }
-
-      if (queryParams._limit !== undefined || queryParams._page !== undefined) {
-        const limit = parseInt(queryParams._limit, 10) || 10;
-        const page = parseInt(queryParams._page, 10) || 1;
-        return getPaginatedDataHandler(data, limit, page);
-      } else if (Object.keys(queryParams).length > 0) {
-        data = getFilteredDataHandler(data, queryParams);
-      }
-    } else if (method === "POST") {
-      data = await postHandler(key, body);
-    } else if (method === "PUT" && id) {
-      data = await putHandler(key, id, body);
-    } else if (method === "DELETE" && id) {
-      data = await deleteHandler(key, id);
-    } else if (method === "PATCH" && id) {
-      data = await patchHandler(key, id, body);
-    } else {
-      throw new Error(`Invalid request for url: ${url}`);
-    }
-
     return new Response(JSON.stringify(data), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: responseHeaders,
     });
   }
 
@@ -496,11 +641,30 @@
             localStorage.getItem("protectedData") || "[]"
           );
 
-          const protectedRoute = protectedData.find((item) => {
-            const urlKey = getKeyFromUrl(url).toLowerCase().trim();
-            const itemRouteKey = item.route.toLowerCase().trim();
-            return urlKey === itemRouteKey;
-          });
+          console.log("protectedData:", protectedData);
+
+          let protectedRoute = false;
+          let isRouteUserSpecific = false;
+          let userId;
+
+          for (let i = 0; i < protectedData.length; i++) {
+            let keyFromUrl = getKeyFromUrl(url);
+            if (keyFromUrl) {
+              const urlKey = getKeyFromUrl(url).toLowerCase().trim();
+              console.log("urlKey: ", urlKey); // fakecollection_orders__user
+              const itemRouteKey = protectedData[i].route.toLowerCase().trim();
+              console.log("itemRouteKey: ", itemRouteKey); // orders
+  
+              if (protectedData[i].route.trim().toLowerCase() === itemRouteKey.trim().toLowerCase()) {
+                protectedRoute = protectedData[i];
+                isRouteUserSpecific = protectedData[i].isUserSpecific;
+                break;
+              }
+            }
+          }
+
+          console.log("protectedRoute: ", protectedRoute);
+          console.log("isRouteUserSpecific", isRouteUserSpecific);
 
           if (
             protectedRoute &&
@@ -510,7 +674,13 @@
               !verifyJWT(headers.Authorization))
           ) {
             throw new Error("Unauthorized");
+          } else {
+            let headerAuthToken = headers.Authorization
+            console.log('headerAuthToken: ', headerAuthToken)
+            if (headerAuthToken) userId = getUserIdFromJwt(headerAuthToken)
           }
+
+          console.log("** User ID from token: ", userId);
 
           // Handle special routes: /register and /login
           if (url.endsWith("/register") && method === "POST") {
@@ -525,8 +695,10 @@
             return;
           }
 
+          console.log("*** url to be sent to handleCRUDOperations: ", url);
+
           // Handle CRUD operations
-          const response = handleCRUDOperations(url, method, body);
+          const response = handleCRUDOperations(url, method, body, {isRouteUserSpecific: isRouteUserSpecific, userId: userId});
           if (response) {
             resolve(response);
           } else {
@@ -715,9 +887,16 @@
         firstName: "Vivek",
         lastName: "Agarwal",
       },
+      {
+        id: 2,
+        username: "john",
+        password: "john",
+        firstName: "John",
+        lastName: "Doe",
+      },
     ],
   };
-  const defailtProtectedData = [
+  const defaultProtectedData = [
     {
       route: "orders",
       methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
@@ -727,7 +906,7 @@
 
   // Initialize the data
   initializeFakeApiData(defaultInitialData, false);
-  setProtectedFakeApiData(defailtProtectedData);
+  setProtectedFakeApiData(defaultProtectedData);
 
   // Expose functions
   global.initializeFakeApiData = initializeFakeApiData;
