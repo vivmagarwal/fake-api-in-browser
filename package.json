@@ -1,6 +1,6 @@
 {
   "name": "fake-api-in-browser",
-  "version": "1.0.2",
+  "version": "1.0.5",
   "description": "A mock API in the browser that intercepts fetch requests and responds with customizable data",
   "main": "fake-api-in-browser.js",
   "scripts": {
@@ -8,8 +8,14 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run build"
+      "pre-commit": "lint-staged"
     }
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "npm run build",
+      "git add dist/fake-api.js"
+    ]
   },
   "repository": {
     "type": "git",
@@ -30,6 +36,7 @@
   "homepage": "https://github.com/vivmagarwal/fake-api-in-browser",
   "devDependencies": {
     "husky": "^8.0.3",
+    "lint-staged": "^13.2.2",
     "terser": "^5.10.1"
   }
 }
