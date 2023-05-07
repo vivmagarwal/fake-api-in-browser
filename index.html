@@ -9,7 +9,7 @@
   <body>
     <button id="click-me">Click me</button>
 
-    <script src="fake-api.js"></script>
+    <script src="fake-api-in-browser.js"></script>
     <script>
 
       document
@@ -52,22 +52,26 @@
             //     lastName: "Doe"})
             // })
 
+            // const res = await fetch(
+            //   "https://mockapi.com/orders/",
+            //   {
+            //     method: "POST",
+            //     headers: {
+            //       "Content-Type": "application/json",
+            //       Authorization:  'Bearer ' + token,
+            //     },
+            //     body: JSON.stringify({
+            //       items: [
+            //         {productId: 3, quantity: 3},
+            //         {productId: 4, quantity: 3}
+            //       ]
+            //     })
+            //   }
+            // );
+
             const res = await fetch(
-              "https://mockapi.com/orders/",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization:  'Bearer ' + token,
-                },
-                body: JSON.stringify({
-                  items: [
-                    {productId: 3, quantity: 3},
-                    {productId: 4, quantity: 3}
-                  ]
-                })
-              }
-            );
+      "https://mockapi.com/products?q=ap&_sort=id&brand=Apple&price_lte=250"
+    );
 
             // const res = await fetch(
             //   "https://mockapi.com/orders/3",

@@ -1,23 +1,29 @@
 {
-  "name": "Fake API in browser",
-  "version": "1.0.0",
-  "description": "A mock API module for simulating API calls with protected routes and custom data",
-  "main": "fake-api.js",
+  "name": "fake-api-in-browser",
+  "version": "1.0.1",
+  "description": "A mock API in the browser that intercepts fetch requests and responds with customizable data",
+  "main": "fake-api-in-browser.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "terser fake-api-in-browser.js --output dist/fake-api.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/mock-api.git"
+    "url": "git+https://github.com/vivmagarwal/fake-api-in-browser"
   },
   "keywords": [
-    "mock",
-    "api",
     "fake",
-    "testing"
+    "api",
+    "mock",
+    "browser",
+    "fetch"
   ],
-  "author": "Your Name <your-email@example.com>",
+  "author": "Vivek Agarwal vivmagarwal@gmail.com",
   "license": "MIT",
-  "dependencies": {},
-  "devDependencies": {}
+  "bugs": {
+    "url": "https://github.com/vivmagarwal/fake-api-in-browser/issues"
+  },
+  "homepage": "https://github.com/vivmagarwal/fake-api-in-browser",
+  "devDependencies": {
+    "terser": "^5.10.1"
+  }
 }

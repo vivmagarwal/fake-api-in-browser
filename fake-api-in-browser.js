@@ -533,15 +533,24 @@
           let isRouteUserSpecific = false;
           let userId;
 
-          for (let i = 0; i < protectedData.length; i++) {
-            let keyFromUrl = getKeyFromUrl(url);
-            if (keyFromUrl) {
-              const urlKey = getKeyFromUrl(url).toLowerCase().trim();
+          console.log('protectedData: ', protectedData)
 
-              const itemRouteKey = protectedData[i].route.toLowerCase().trim();
+          for (let i = 0; i < protectedData.length; i++) {
+            let keyFromUrl = getKeyFromUrl(url); //fakeCollection_products__default
+
+            console.log('keyFromUrl: ', keyFromUrl)
+
+            if (keyFromUrl) {
+              const itemRouteKey = protectedData[i].route.toLowerCase().trim(); // orders
+              console.log('itemRouteKey: ', itemRouteKey);
+
+              let trimmedKeyFromUrl = keyFromUrl.replace("fakeCollection_","");
+              trimmedKeyFromUrl = trimmedKeyFromUrl.replace("__default","");
+
+              console.log("trimmedKeyFromUrl: ", trimmedKeyFromUrl);
 
               if (
-                protectedData[i].route.trim().toLowerCase() ===
+                trimmedKeyFromUrl.trim().toLowerCase() ===
                 itemRouteKey.trim().toLowerCase()
               ) {
                 protectedRoute = protectedData[i];
@@ -551,6 +560,8 @@
             }
           }
 
+          console.log('protectedRoute: ', protectedRoute)
+
           if (
             protectedRoute &&
             protectedRoute.methods.includes(method) &&
@@ -559,11 +570,16 @@
               !verifyJWT(headers.Authorization))
           ) {
             throw new Error("Unauthorized");
-          } else {
-            let headerAuthToken = headers.Authorization;
-
-            if (headerAuthToken) userId = getUserIdFromJwt(headerAuthToken);
           }
+
+
+          if (protectedRoute && protectedRoute.methods.includes(method) && headers.Authorization && verifyJWT(headers.Authorization)) {
+            let headerAuthToken = headers.Authorization;
+            if (headerAuthToken) {
+              userId = getUserIdFromJwt(headerAuthToken)
+            };
+          }
+
 
           // Handle special routes: /register and /login
           if (url.endsWith("/register") && method === "POST") {
