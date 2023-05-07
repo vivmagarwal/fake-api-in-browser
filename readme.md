@@ -9,7 +9,7 @@ Codepen DEMO (fake api + React): https://codepen.io/drupalastic/pen/GRYQmZX
 
 UNPKG Example: 
 ```
-<script src="https://unpkg.com/fake-api-in-browser@1.0.1/dist/fake-api.js"></script>
+<script src="https://unpkg.com/fake-api-in-browser@1.0.2/dist/fake-api.js"></script>
 
 ```
 
